@@ -15,22 +15,26 @@ import loguru
 
 def scrape_data_point():
     """
-    Scrapes the main headline from The Daily Pennsylvanian home page.
+    Scrapes the main headline from each sport on The Daily Pennsylvanian.
 
     Returns:
-        str: The headline text if found, otherwise an empty string.
+        dict: Each sport with the associated headline text if found, otherwise an empty string.
     """
-    req = requests.get("https://www.thedp.com")
-    loguru.logger.info(f"Request URL: {req.url}")
-    loguru.logger.info(f"Request status code: {req.status_code}")
+    baseURL = "https://www.thedp.com/section/"
+    sports = ["wrestling", "basketball", "swimming", "baseball", "football", "softball", "lacrosse", "tennis", "track", "squash", "field-hockey", "soccer", "hockey", "volleyball", "cross_country"]
+    data = {}
+    for sport in sports:
+        req = requests.get(baseURL + sport)
+        loguru.logger.info(f"Request URL: {req.url}")
+        loguru.logger.info(f"Request status code: {req.status_code}")
 
-    if req.ok:
-        soup = bs4.BeautifulSoup(req.text, "html.parser")
-        target_element = soup.find("a", class_="frontpage-link")
-        data_point = "" if target_element is None else target_element.text
-        loguru.logger.info(f"Data point: {data_point}")
-        return data_point
-
+        if req.ok:
+            soup = bs4.BeautifulSoup(req.text, "html.parser")
+            target_element = soup.select_one(".row.section-article .standard-link")
+            data_point = "" if target_element is None else target_element.text.strip()
+            loguru.logger.info(f"Sport: {sport}, Data point: {data_point}")
+            data[sport] = data_point
+    return data
 
 if __name__ == "__main__":
 
